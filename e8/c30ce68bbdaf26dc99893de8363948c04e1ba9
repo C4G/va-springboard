@@ -1,0 +1,26 @@
+docker-compose.yaml
+  s_c31ce6efcbc853::t_fcc2b05c0184e9 5,23
+.gitignore
+  s_c31ce6efcbc853::t_e1d888dcc460e5 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e8c30ce68bbdaf26dc99893de8363948c04e1ba9",
+  "prompts": {},
+  "humans": {
+    "h_d5b6f744415839": {
+      "author": "Justin McLellan <jmclellan9@gatech.edu>"
+    }
+  },
+  "sessions": {
+    "s_c31ce6efcbc853": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a017c7-56de-7902-a111-f68fde114d27",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Justin McLellan <jmclellan9@gatech.edu>"
+    }
+  }
+}
