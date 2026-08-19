@@ -58,7 +58,7 @@ jobs:
           AUTH_URL: http://localhost:3000
           NEXTAUTH_URL: http://localhost:3000
         run: |
-          docker compose -f docker-compose.yml --profile production -p smoke up -d --pull always
+          docker compose -f docker-compose.yaml --profile production -p smoke up -d --pull always
 
           app=$(docker compose -p smoke ps -q --all va-springboard-app)
           migration=$(docker compose -p smoke ps -q --all va-springboard-migrations)
@@ -78,7 +78,7 @@ jobs:
 
       - name: Stop smoke test stack
         if: always()
-        run: docker compose -f docker-compose.yml --profile production -p smoke down --volumes --remove-orphans || true
+        run: docker compose -f docker-compose.yaml --profile production -p smoke down --volumes --remove-orphans || true
 
       - name: Deploy staging in Coolify
         env:

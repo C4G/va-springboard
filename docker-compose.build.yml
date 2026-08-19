@@ -1,4 +1,4 @@
-# Local/CI overlay: production and staging pull the image published to GHCR.
+# Local/CI overlay for docker-compose.yaml: deployed environments pull from GHCR.
 services:
   va-springboard-app:
     build:

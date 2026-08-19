@@ -1,10 +1,10 @@
-# Coolify runs this file as two separate Compose resources. Staging follows the
+# Coolify runs this Compose file as two separate resources. Staging follows the
 # latest main build; production uses the commit SHA selected for promotion.
 services:
   va-springboard-db:
     image: postgres:17
     ports:
-      - "${DATABASE_PORT:-0}:5432"
+      - '${DATABASE_PORT:-0}:5432'
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PW}
       POSTGRES_USER: ${DATABASE_USER}
@@ -12,7 +12,7 @@ services:
     volumes:
       - va-springboard-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}']
       interval: 2m
       timeout: 5s
       retries: 3
@@ -21,7 +21,7 @@ services:
 
   va-springboard-backup:
     image: postgres:17
-    entrypoint: ["/bin/sh", "-euc"]
+    entrypoint: ['/bin/sh', '-euc']
     command:
       - |
         MODE="$${BACKUP_MODE:-required}"
@@ -69,7 +69,7 @@ services:
       BACKUP_KEEP: ${BACKUP_KEEP:-10}
     volumes:
       - va-springboard-backups:/backups
-    restart: "no"
+    restart: 'no'
     depends_on:
       va-springboard-db:
         condition: service_healthy
@@ -77,10 +77,11 @@ services:
 
   va-springboard-migrations:
     image: ghcr.io/c4g/va-springboard:${IMAGE_TAG:-latest}
-    command: ["node", "/node_modules/prisma/build/index.js", "migrate", "deploy"]
+    command:
+      ['node', '/node_modules/prisma/build/index.js', 'migrate', 'deploy']
     environment:
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@va-springboard-db:5432/${DATABASE_NAME}
-    restart: "no"
+    restart: 'no'
     depends_on:
       va-springboard-db:
         condition: service_healthy
@@ -91,7 +92,7 @@ services:
   va-springboard-app:
     image: ghcr.io/c4g/va-springboard:${IMAGE_TAG:-latest}
     ports:
-      - "${APP_PORT:-0}:3000"
+      - '${APP_PORT:-0}:3000'
     environment:
       DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@va-springboard-db:5432/${DATABASE_NAME}
       AUTH_SECRET: ${AUTH_SECRET}
@@ -108,7 +109,11 @@ services:
       va-springboard-migrations:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      test:
+        [
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1',
+        ]
       interval: 2m
       timeout: 5s
       retries: 3

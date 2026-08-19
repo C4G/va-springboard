@@ -45,7 +45,7 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
         run: |
           project="va-springboard-pr-${PR_NUMBER}"
-          docker compose -f docker-compose.yml -f docker-compose.build.yml --profile production -p "$project" up --build -d
+          docker compose -f docker-compose.yaml -f docker-compose.build.yml --profile production -p "$project" up --build -d
 
           app=$(docker compose -p "$project" ps -q --all va-springboard-app)
           for i in $(seq 1 60); do
@@ -64,4 +64,4 @@ jobs:
         if: always()
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: docker compose -f docker-compose.yml -f docker-compose.build.yml --profile production -p "va-springboard-pr-${PR_NUMBER}" down --volumes --remove-orphans || true
+        run: docker compose -f docker-compose.yaml -f docker-compose.build.yml --profile production -p "va-springboard-pr-${PR_NUMBER}" down --volumes --remove-orphans || true

@@ -44,7 +44,7 @@ VA Springboard is a case-management application for Vision Aid. It includes:
    ```
 
    Troubleshooting tips:
-   User's have had success updating the following components in the docker-compose.yml file, within the va-springboard-db section:
+   Users have had success updating the following components in `docker-compose.yaml`, within the `va-springboard-db` section:
    ports: - "${DATABASE_PORT:-5432}:5432"
    volumes: - va-springboard-db-data:/var/lib/postgresql
 
