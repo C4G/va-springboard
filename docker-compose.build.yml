@@ -1,0 +1,10 @@
+# Local/CI overlay: production and staging pull the image published to GHCR.
+services:
+  va-springboard-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+  va-springboard-migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile

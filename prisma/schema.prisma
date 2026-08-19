@@ -1,0 +1,172 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  READ_ONLY
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          String?
+  schoolId      String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  access_token      String?
+  token_type        String?
+  scope             String?
+  expires_at        Int?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum StudentClass {
+  FIRST
+  SECOND
+  THIRD
+  FOURTH
+  FIFTH
+  SIXTH
+  SEVENTH
+  EIGHTH
+  NINTH
+  TENTH
+  ELEVENTH
+  TWELFTH
+  BCOM
+  BA
+  OTHER
+}
+
+model Student {
+  id                String        @id @default(uuid())
+  firstName         String
+  lastName          String?
+  dateOfBirth       DateTime
+  gender            String
+  visualAcuity      String
+  className         String
+  studentClass      StudentClass  @default(OTHER)
+  aadharNumber      String
+  city              String
+  phoneNumber       String?
+  email             String?
+  govDisabilityCert String
+  schoolId          String
+  caseStory         String?
+  school            School?       @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  Enrollment        Enrollment[]
+  Beneficiary       Beneficiary[]
+}
+
+model TrainingProgram {
+  id          String       @id @default(uuid())
+  name        String
+  description String
+  outcome     String?
+  schoolId    String?
+  school      School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  Enrollment  Enrollment[]
+}
+
+model School {
+  id          String            @id @default(uuid())
+  Name        String
+  Location    String
+  Phone       String
+  Email       String
+  Tier        String
+  Notes       String?
+  students    Student[]
+  programs    TrainingProgram[]
+  grants      Grant[]
+  Enrollment  Enrollment[]
+  Beneficiary Beneficiary[]
+}
+
+model Enrollment {
+  id                String          @id @default(uuid())
+  schoolId          String
+  studentId         String
+  trainingprogramId String
+  startDate         DateTime
+  endDate           DateTime
+  sessions          Int
+  notes             String
+  school            School?         @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  trainingProgram   TrainingProgram @relation(fields: [trainingprogramId], references: [id], onDelete: SetNull)
+  student           Student         @relation(fields: [studentId], references: [id], onDelete: SetNull)
+}
+
+model Device {
+  id          String        @id @default(uuid())
+  type        String
+  desc        String
+  techParam1  String
+  techParam2  String
+  Beneficiary Beneficiary[]
+}
+
+model Beneficiary {
+  id        String   @id @default(uuid())
+  schoolId  String
+  studentId String
+  deviceId  String
+  issueDate DateTime
+  required  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  device    Device   @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: SetNull)
+}
+
+model Grant {
+  id           String   @id @default(uuid())
+  mouDate      DateTime
+  schoolId     String
+  grantTotal   Float
+  grantInf     Float
+  grantTrain   Float
+  grantInfSp   Float
+  grantTrainSp Float
+  school       School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+}

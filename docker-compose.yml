@@ -1,0 +1,121 @@
+# Coolify runs this file as two separate Compose resources. Staging follows the
+# latest main build; production uses the commit SHA selected for promotion.
+services:
+  va-springboard-db:
+    image: postgres:17
+    ports:
+      - "${DATABASE_PORT:-0}:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PW}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - va-springboard-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 2m
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 2s
+
+  va-springboard-backup:
+    image: postgres:17
+    entrypoint: ["/bin/sh", "-euc"]
+    command:
+      - |
+        MODE="$${BACKUP_MODE:-required}"
+        case "$$MODE" in
+          off) echo "[backup] BACKUP_MODE=off; skipping backup."; exit 0 ;;
+          best-effort|required) ;;
+          *) echo "[backup] BACKUP_MODE must be off, best-effort, or required."; exit 1 ;;
+        esac
+
+        stamp=$$(date -u +%Y%m%dT%H%M%SZ)
+        final="/backups/pre-migrate-$$stamp.dump"
+        tmp="/backups/.pre-migrate-$$stamp.dump"
+        fail() {
+          echo "[backup] $$1"
+          rm -f "$$tmp"
+          if [ "$$MODE" = required ]; then exit 1; fi
+          echo "[backup] continuing because BACKUP_MODE=$$MODE."
+          exit 0
+        }
+
+        dumped=false
+        for attempt in $$(seq 1 30); do
+          if pg_dump -Fc -f "$$tmp"; then
+            dumped=true
+            break
+          fi
+          echo "[backup] database is not ready (attempt $$attempt/30); retrying..."
+          rm -f "$$tmp"
+          sleep 2
+        done
+        [ "$$dumped" = true ] || fail "pg_dump failed after 30 attempts"
+        pg_restore --list "$$tmp" >/dev/null 2>&1 || fail "dump verification failed"
+        mv "$$tmp" "$$final"
+        echo "[backup] Backup complete: $$final"
+
+        ls -1t /backups/pre-migrate-*.dump 2>/dev/null | tail -n "+$$(( $${BACKUP_KEEP:-10} + 1 ))" | while read -r old; do
+          rm -f "$$old"
+        done
+    environment:
+      PGHOST: va-springboard-db
+      PGUSER: ${DATABASE_USER}
+      PGPASSWORD: ${DATABASE_PW}
+      PGDATABASE: ${DATABASE_NAME}
+      BACKUP_MODE: ${BACKUP_MODE:-required}
+      BACKUP_KEEP: ${BACKUP_KEEP:-10}
+    volumes:
+      - va-springboard-backups:/backups
+    restart: "no"
+    depends_on:
+      va-springboard-db:
+        condition: service_healthy
+    profiles: [production]
+
+  va-springboard-migrations:
+    image: ghcr.io/c4g/va-springboard:${IMAGE_TAG:-latest}
+    command: ["node", "/node_modules/prisma/build/index.js", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@va-springboard-db:5432/${DATABASE_NAME}
+    restart: "no"
+    depends_on:
+      va-springboard-db:
+        condition: service_healthy
+      va-springboard-backup:
+        condition: service_completed_successfully
+    profiles: [production]
+
+  va-springboard-app:
+    image: ghcr.io/c4g/va-springboard:${IMAGE_TAG:-latest}
+    ports:
+      - "${APP_PORT:-0}:3000"
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER}:${DATABASE_PW}@va-springboard-db:5432/${DATABASE_NAME}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    command: node server.js
+    depends_on:
+      va-springboard-db:
+        condition: service_healthy
+      va-springboard-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 2m
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+    profiles: [production]
+
+volumes:
+  va-springboard-db-data:
+  va-springboard-backups:
