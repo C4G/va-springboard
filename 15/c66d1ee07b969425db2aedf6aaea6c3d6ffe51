@@ -1,0 +1,33 @@
+README.md
+  s_c31ce6efcbc853::t_46f61c478d3157 47
+.github/workflows/ci.yaml
+  s_c31ce6efcbc853::t_94ea4fd55b685a 48,67
+.github/workflows/publish.yaml
+  s_c31ce6efcbc853::t_94ea4fd55b685a 61,81
+docker-compose.yaml
+  s_c31ce6efcbc853::t_94ea4fd55b685a 1
+  s_c31ce6efcbc853::t_fa75b311aab23e 7,15,24,72,80-81,84,95,112-116
+docker-compose.build.yml
+  s_c31ce6efcbc853::t_94ea4fd55b685a 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "15c66d1ee07b969425db2aedf6aaea6c3d6ffe51",
+  "prompts": {},
+  "humans": {
+    "h_d5b6f744415839": {
+      "author": "Justin McLellan <jmclellan9@gatech.edu>"
+    }
+  },
+  "sessions": {
+    "s_c31ce6efcbc853": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a017c7-56de-7902-a111-f68fde114d27",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Justin McLellan <jmclellan9@gatech.edu>"
+    }
+  }
+}
