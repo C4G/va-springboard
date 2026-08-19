@@ -2,7 +2,7 @@
 # latest main build; production uses the commit SHA selected for promotion.
 services:
   va-springboard-db:
-    image: postgres:17
+    image: postgres:18
     ports:
       - '${DATABASE_PORT:-0}:5432'
     environment:
@@ -20,7 +20,7 @@ services:
       start_interval: 2s
 
   va-springboard-backup:
-    image: postgres:17
+    image: postgres:18
     entrypoint: ['/bin/sh', '-euc']
     command:
       - |
